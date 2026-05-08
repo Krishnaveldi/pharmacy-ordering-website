@@ -10,4 +10,6 @@ public interface OrderService {
     Order placeOrder(OrderRequest request);
 
     List<Order> getMyOrders();
+
+    List<Order> getAllOrders();
 }

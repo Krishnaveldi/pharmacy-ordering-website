@@ -3,6 +3,7 @@ package com.pharmacy.controller;
 import com.pharmacy.dto.MedicineRequest;
 import com.pharmacy.dto.MedicineResponse;
 import com.pharmacy.service.MedicineService;
+import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
 import org.springframework.http.ResponseEntity;
@@ -17,6 +18,7 @@ public class MedicineController {
 
     @PostMapping
     public ResponseEntity<MedicineResponse> createMedicine(
+            @Valid
             @RequestBody MedicineRequest request
     ) {
         return ResponseEntity.ok(medicineService.createMedicine(request));

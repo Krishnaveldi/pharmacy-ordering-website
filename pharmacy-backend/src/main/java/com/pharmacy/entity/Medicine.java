@@ -37,6 +37,8 @@ public class Medicine {
 
     private LocalDate expiryDate;
 
+    private LocalDate manufactureDate;
+
     private String imageUrl;
 
     @Column(nullable = false)

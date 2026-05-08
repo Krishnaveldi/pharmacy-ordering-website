@@ -30,13 +30,18 @@ public class AuthServiceImpl implements AuthService {
             throw new RuntimeException("Email already exists");
         }
 
+        Role userRole = Role.CUSTOMER;
+        if (request.getRole() != null && request.getRole().equalsIgnoreCase("ADMIN")) {
+            userRole = Role.ADMIN;
+        }
+
         User user = User.builder()
                 .fullName(request.getFullName())
                 .email(request.getEmail())
                 .password(passwordEncoder.encode(request.getPassword()))
                 .phone(request.getPhone())
                 .address(request.getAddress())
-                .role(Role.CUSTOMER)
+                .role(userRole)
                 .build();
 
         userRepository.save(user);

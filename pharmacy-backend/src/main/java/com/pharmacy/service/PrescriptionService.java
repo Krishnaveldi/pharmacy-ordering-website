@@ -7,4 +7,6 @@ public interface PrescriptionService {
     Prescription uploadPrescription(String fileUrl);
 
     Prescription approvePrescription(Long id);
+
+    java.util.List<Prescription> getAllPrescriptions();
 }

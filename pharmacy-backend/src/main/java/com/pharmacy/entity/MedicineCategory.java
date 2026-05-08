@@ -21,4 +21,7 @@ public class MedicineCategory {
 
     @Column(columnDefinition = "TEXT")
     private String description;
+
+    @Column
+    private Integer age;
 }

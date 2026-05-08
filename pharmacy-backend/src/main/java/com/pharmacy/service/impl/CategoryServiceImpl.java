@@ -25,6 +25,7 @@ public class CategoryServiceImpl implements CategoryService {
         MedicineCategory category = MedicineCategory.builder()
                 .name(request.getName())
                 .description(request.getDescription())
+                .age(request.getAge())
                 .build();
 
         return categoryRepository.save(category);

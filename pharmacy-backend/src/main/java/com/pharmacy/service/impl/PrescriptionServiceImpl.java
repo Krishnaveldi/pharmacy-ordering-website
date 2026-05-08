@@ -64,4 +64,9 @@ public class PrescriptionServiceImpl implements PrescriptionService {
         return userRepository.findByEmail(email)
                 .orElseThrow(() -> new RuntimeException("User not found"));
     }
+
+    @Override
+    public java.util.List<Prescription> getAllPrescriptions() {
+        return prescriptionRepository.findAll();
+    }
 }

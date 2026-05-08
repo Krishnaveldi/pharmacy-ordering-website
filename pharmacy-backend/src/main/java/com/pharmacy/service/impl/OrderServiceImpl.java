@@ -117,6 +117,11 @@ public class OrderServiceImpl implements OrderService {
         return orderRepository.findByUser(user);
     }
 
+    @Override
+    public List<Order> getAllOrders() {
+        return orderRepository.findAll();
+    }
+
     private User getCurrentUser() {
         String email = SecurityContextHolder
                 .getContext()

@@ -28,6 +28,8 @@ public class MedicineResponse {
 
     private LocalDate expiryDate;
 
+    private LocalDate manufactureDate;
+
     private String imageUrl;
 
     private String categoryName;

@@ -20,6 +20,7 @@ public class CartItem {
 
     @ManyToOne
     @JoinColumn(name = "cart_id")
+    @com.fasterxml.jackson.annotation.JsonBackReference
     private Cart cart;
 
     @ManyToOne

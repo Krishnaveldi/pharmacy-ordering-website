@@ -21,4 +21,9 @@ public class AdminPrescriptionController {
                 prescriptionService.approvePrescription(id)
         );
     }
+
+    @GetMapping
+    public ResponseEntity<java.util.List<Prescription>> getAllPrescriptions() {
+        return ResponseEntity.ok(prescriptionService.getAllPrescriptions());
+    }
 }

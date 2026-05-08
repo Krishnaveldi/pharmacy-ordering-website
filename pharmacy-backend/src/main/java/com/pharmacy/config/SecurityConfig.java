@@ -41,7 +41,10 @@ public class SecurityConfig {
                         ).permitAll()
                         .requestMatchers(
                                 "/api/v1/medicines/**",
-                                "/api/v1/categories/**"
+                                "/api/v1/categories/**",
+                                "/api/v1/medicines",
+                                "/api/v1/categories",
+                                "/error"
                         ).permitAll()
                         .requestMatchers(
                                 "/api/v1/admin/**"

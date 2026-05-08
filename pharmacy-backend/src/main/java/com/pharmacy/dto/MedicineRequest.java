@@ -33,6 +33,9 @@ public class MedicineRequest {
     @Future(message = "Expiry date must be in future")
     private LocalDate expiryDate;
 
+    @Future(message = "Expiry date must be in future")
+    private LocalDate manufactureDate;
+
     private String imageUrl;
 
     @NotNull(message = "Category is required")

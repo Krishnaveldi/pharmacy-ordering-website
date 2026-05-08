@@ -35,6 +35,8 @@ public class MedicineServiceImpl implements MedicineService {
                 .dosage(request.getDosage())
                 .requiresPrescription(request.getRequiresPrescription())
                 .expiryDate(request.getExpiryDate())
+                //now added
+                .manufactureDate(request.getManufactureDate())
                 .imageUrl(request.getImageUrl())
                 .category(category)
                 .isActive(true)
@@ -70,6 +72,8 @@ public class MedicineServiceImpl implements MedicineService {
         medicine.setDosage(request.getDosage());
         medicine.setRequiresPrescription(request.getRequiresPrescription());
         medicine.setExpiryDate(request.getExpiryDate());
+        //now added
+        medicine.setManufactureDate(request.getManufactureDate());
         medicine.setImageUrl(request.getImageUrl());
         medicine.setCategory(category);
 
@@ -132,6 +136,7 @@ public class MedicineServiceImpl implements MedicineService {
                 .stockQuantity(medicine.getStockQuantity())
                 .dosage(medicine.getDosage())
                 .requiresPrescription(medicine.getRequiresPrescription())
+                .manufactureDate(medicine.getManufactureDate())
                 .expiryDate(medicine.getExpiryDate())
                 .imageUrl(medicine.getImageUrl())
                 .categoryName(medicine.getCategory().getName())
