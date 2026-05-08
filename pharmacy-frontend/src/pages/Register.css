@@ -35,7 +35,8 @@
 }
 
 .register-form input,
-.register-form textarea {
+.register-form textarea,
+.register-form select {
     padding: 0.9rem 1rem;
     border: 2px solid #e0e0e0;
     border-radius: 8px;
@@ -47,7 +48,8 @@
 }
 
 .register-form input:focus,
-.register-form textarea:focus {
+.register-form textarea:focus,
+.register-form select:focus {
     outline: none;
     border-color: #667eea;
     box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
@@ -55,7 +57,8 @@
 }
 
 .register-form input::placeholder,
-.register-form textarea::placeholder {
+.register-form textarea::placeholder,
+.register-form select::placeholder {
     color: #999;
 }
 

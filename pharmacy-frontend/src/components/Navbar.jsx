@@ -24,18 +24,17 @@ const Navbar = () => {
                     <Link to="/" className="navbar-link">
                         Home
                     </Link>
-                    <Link to="/medicines" className="navbar-link">
-                        Medicines
-                    </Link>
-                    <Link to="/orders" className="navbar-link">
-                        Orders
-                    </Link>
-                    <Link to="/upload-prescription" className="navbar-link">
-                        Upload Rx
-                    </Link>
-                    <Link to="/cart" className="navbar-link">
-                        🛒 Cart
-                    </Link>
+                    {(!user || user.role !== 'ADMIN') && (
+                        <>
+                            <Link to="/medicines" className="navbar-link">Medicines</Link>
+                            {user && <Link to="/orders" className="navbar-link">Orders</Link>}
+                            {user && <Link to="/upload-prescription" className="navbar-link">Upload Rx</Link>}
+                            {user && <Link to="/cart" className="navbar-link">🛒 Cart</Link>}
+                        </>
+                    )}
+                    {user?.role === 'ADMIN' && (
+                        <Link to="/admin" className="navbar-link">Dashboard</Link>
+                    )}
 
                     {user ? (
                         <div className="navbar-user">

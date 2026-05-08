@@ -138,7 +138,38 @@
 .checkout-btn:hover {
     transform: translateY(-3px);
     box-shadow: 0 15px 40px rgba(102, 126, 234, 0.4);
+.checkout-form {
+    margin-top: 1.5rem;
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
 }
+
+.address-input {
+    width: 100%;
+    padding: 10px;
+    border-radius: 8px;
+    border: 1px solid #cbd5e1;
+    font-family: inherit;
+    resize: vertical;
+}
+
+.checkout-btn.confirm {
+    background-color: #22c55e;
+}
+
+.checkout-btn.confirm:hover {
+    background-color: #16a34a;
+}
+
+.checkout-btn.cancel {
+    background-color: #ef4444;
+}
+
+.checkout-btn.cancel:hover {
+    background-color: #dc2626;
+}
+
 
 .checkout-btn:active {
     transform: translateY(-1px);

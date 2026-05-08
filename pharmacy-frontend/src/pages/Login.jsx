@@ -28,7 +28,11 @@ const Login = () => {
                 response.data.role
             );
 
-            navigate("/medicines");
+            if (response.data.role === "ADMIN") {
+                navigate("/admin");
+            } else {
+                navigate("/medicines");
+            }
 
         } catch (error) {
             alert(error.response.data.message);

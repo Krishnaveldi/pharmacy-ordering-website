@@ -12,7 +12,8 @@ const Register = () => {
         email: "",
         password: "",
         phone: "",
-        address: ""
+        address: "",
+        role: "CUSTOMER"
     });
 
     const handleSubmit = async (e) => {
@@ -79,6 +80,17 @@ const Register = () => {
                         address: e.target.value
                     })}
                 />
+
+                <select
+                    value={form.role}
+                    onChange={(e) => setForm({
+                        ...form,
+                        role: e.target.value
+                    })}
+                >
+                    <option value="CUSTOMER">Customer</option>
+                    <option value="ADMIN">Admin</option>
+                </select>
 
                 <button className="register-btn">
                     Register
