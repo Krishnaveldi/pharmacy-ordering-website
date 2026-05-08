@@ -30,6 +30,7 @@ public class OrderServiceImpl implements OrderService {
     public Order placeOrder(OrderRequest request) {
         User user = getCurrentUser();
 
+        // 1. Fetch Cart
         Cart cart = cartRepository.findByUser(user)
                 .orElseThrow(() -> new RuntimeException("Cart not found"));
 
@@ -37,6 +38,7 @@ public class OrderServiceImpl implements OrderService {
             throw new RuntimeException("Cart is empty");
         }
 
+        // 2. Initialize Order Object
         BigDecimal totalAmount = BigDecimal.ZERO;
         Order order = Order.builder()
                 .user(user)
@@ -47,11 +49,13 @@ public class OrderServiceImpl implements OrderService {
 
         List<OrderItem> orderItems = new ArrayList<>();
 
+        // 3. Process each item in the cart
         for (CartItem cartItem : cart.getItems()) {
             Medicine medicine = cartItem.getMedicine();
 
-            // Prescription check
-            if (medicine.getRequiresPrescription()) {
+            // --- FIX: NULL-SAFE PRESCRIPTION CHECK ---
+            // Boolean.TRUE.equals handles null by returning false instead of throwing NPE
+            if (Boolean.TRUE.equals(medicine.getRequiresPrescription())) {
                 boolean approvedPrescription = prescriptionRepository
                         .existsByUserAndStatus(user, PrescriptionStatus.APPROVED);
                 if (!approvedPrescription) {
@@ -59,25 +63,24 @@ public class OrderServiceImpl implements OrderService {
                 }
             }
 
-            // Stock check
-            if (medicine.getStockQuantity() < cartItem.getQuantity()) {
+            // 4. Stock Validation
+            if (medicine.getStockQuantity() == null || medicine.getStockQuantity() < cartItem.getQuantity()) {
                 throw new RuntimeException("Insufficient stock for: " + medicine.getName());
             }
 
-            // Reduce inventory
+            // 5. Update Inventory
             medicine.setStockQuantity(medicine.getStockQuantity() - cartItem.getQuantity());
             medicineRepository.save(medicine);
 
-            // --- NEW AUDIT LOGGING START ---
+            // 6. Audit Logging
             auditService.log(
                     "INVENTORY_UPDATED",
                     "Medicine",
                     medicine.getId(),
                     "Stock reduced by " + cartItem.getQuantity()
             );
-            // --- NEW AUDIT LOGGING END ---
 
-            // Create order item
+            // 7. Create Order Item
             OrderItem orderItem = OrderItem.builder()
                     .order(order)
                     .medicine(medicine)
@@ -87,31 +90,34 @@ public class OrderServiceImpl implements OrderService {
 
             orderItems.add(orderItem);
 
-            totalAmount = totalAmount.add(
-                    medicine.getPrice().multiply(BigDecimal.valueOf(cartItem.getQuantity()))
-            );
+            // 8. Calculate Total
+            BigDecimal itemTotal = medicine.getPrice().multiply(BigDecimal.valueOf(cartItem.getQuantity()));
+            totalAmount = totalAmount.add(itemTotal);
         }
 
+        // 9. Finalize Order Details
         order.setItems(orderItems);
         order.setTotalAmount(totalAmount);
-        order.setLoyaltyPointsEarned(totalAmount.intValue() / 100);
+
+        // Example Loyalty Logic: 1 point for every 100 currency units
+        order.setLoyaltyPointsEarned(totalAmount.divide(BigDecimal.valueOf(100)).intValue());
 
         Order savedOrder = orderRepository.save(order);
 
+        // 10. Clear Cart after successful order
         cart.getItems().clear();
         cartRepository.save(cart);
 
         return savedOrder;
     }
+
     @Override
     public List<Order> getMyOrders() {
-
         User user = getCurrentUser();
-
         return orderRepository.findByUser(user);
     }
-    private User getCurrentUser() {
 
+    private User getCurrentUser() {
         String email = SecurityContextHolder
                 .getContext()
                 .getAuthentication()
