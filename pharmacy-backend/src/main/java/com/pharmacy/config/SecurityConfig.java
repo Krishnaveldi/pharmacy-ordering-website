@@ -34,32 +34,35 @@ public class SecurityConfig {
                 .cors(cors -> cors.configurationSource(corsConfigurationSource()))
                 .sessionManagement(session -> session.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
                 .authorizeHttpRequests(auth -> auth
-
                         .requestMatchers(
                                 "/api/v1/auth/**",
                                 "/swagger-ui/**",
                                 "/v3/api-docs/**"
                         ).permitAll()
-
                         .requestMatchers(
                                 "/api/v1/medicines/**",
                                 "/api/v1/categories/**"
                         ).permitAll()
-
                         .requestMatchers(
                                 "/api/v1/admin/**"
                         ).hasAuthority("ADMIN")
-
                         .requestMatchers(
                                 "/api/v1/cart/**",
                                 "/api/v1/orders/**",
                                 "/api/v1/prescriptions/**"
                         ).authenticated()
-
                         .anyRequest().authenticated()
-                )
-                .addFilterBefore(rateLimitFilter, JwtAuthenticationFilter.class)
-                .addFilterBefore(jwtAuthenticationFilter, UsernamePasswordAuthenticationFilter.class);
+                );
+
+        // FIX: Position both filters relative to a standard Spring filter
+        // We want: RateLimit -> JWT -> UsernamePassword
+        http.addFilterBefore(jwtAuthenticationFilter, UsernamePasswordAuthenticationFilter.class);
+        http.addFilterBefore(rateLimitFilter, JwtAuthenticationFilter.class.getSuperclass() != null ?
+                UsernamePasswordAuthenticationFilter.class : UsernamePasswordAuthenticationFilter.class);
+
+        // A simpler, safer way to ensure order:
+        // Place RateLimit first, then JWT, both before the standard filter.
+        // Order of 'addFilterBefore' calls matters!
 
         return http.build();
     }
