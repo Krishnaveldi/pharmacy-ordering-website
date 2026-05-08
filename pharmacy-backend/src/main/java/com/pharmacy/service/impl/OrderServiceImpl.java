@@ -3,6 +3,7 @@ package com.pharmacy.service.impl;
 import com.pharmacy.dto.OrderRequest;
 import com.pharmacy.entity.*;
 import com.pharmacy.repository.*;
+import com.pharmacy.service.AuditService;
 import com.pharmacy.service.OrderService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.security.core.context.SecurityContextHolder;
@@ -22,11 +23,11 @@ public class OrderServiceImpl implements OrderService {
     private final OrderRepository orderRepository;
     private final MedicineRepository medicineRepository;
     private final PrescriptionRepository prescriptionRepository;
+    private final AuditService auditService;
 
     @Override
     @Transactional
     public Order placeOrder(OrderRequest request) {
-
         User user = getCurrentUser();
 
         Cart cart = cartRepository.findByUser(user)
@@ -37,7 +38,6 @@ public class OrderServiceImpl implements OrderService {
         }
 
         BigDecimal totalAmount = BigDecimal.ZERO;
-
         Order order = Order.builder()
                 .user(user)
                 .deliveryAddress(request.getDeliveryAddress())
@@ -48,33 +48,36 @@ public class OrderServiceImpl implements OrderService {
         List<OrderItem> orderItems = new ArrayList<>();
 
         for (CartItem cartItem : cart.getItems()) {
-
             Medicine medicine = cartItem.getMedicine();
 
+            // Prescription check
             if (medicine.getRequiresPrescription()) {
-
                 boolean approvedPrescription = prescriptionRepository
                         .existsByUserAndStatus(user, PrescriptionStatus.APPROVED);
-
                 if (!approvedPrescription) {
-                    throw new RuntimeException(
-                            "Approved prescription required for: " + medicine.getName()
-                    );
+                    throw new RuntimeException("Approved prescription required for: " + medicine.getName());
                 }
             }
 
+            // Stock check
             if (medicine.getStockQuantity() < cartItem.getQuantity()) {
-                throw new RuntimeException(
-                        "Insufficient stock for: " + medicine.getName()
-                );
+                throw new RuntimeException("Insufficient stock for: " + medicine.getName());
             }
 
-            medicine.setStockQuantity(
-                    medicine.getStockQuantity() - cartItem.getQuantity()
-            );
-
+            // Reduce inventory
+            medicine.setStockQuantity(medicine.getStockQuantity() - cartItem.getQuantity());
             medicineRepository.save(medicine);
 
+            // --- NEW AUDIT LOGGING START ---
+            auditService.log(
+                    "INVENTORY_UPDATED",
+                    "Medicine",
+                    medicine.getId(),
+                    "Stock reduced by " + cartItem.getQuantity()
+            );
+            // --- NEW AUDIT LOGGING END ---
+
+            // Create order item
             OrderItem orderItem = OrderItem.builder()
                     .order(order)
                     .medicine(medicine)
@@ -85,9 +88,7 @@ public class OrderServiceImpl implements OrderService {
             orderItems.add(orderItem);
 
             totalAmount = totalAmount.add(
-                    medicine.getPrice().multiply(
-                            BigDecimal.valueOf(cartItem.getQuantity())
-                    )
+                    medicine.getPrice().multiply(BigDecimal.valueOf(cartItem.getQuantity()))
             );
         }
 
@@ -102,7 +103,6 @@ public class OrderServiceImpl implements OrderService {
 
         return savedOrder;
     }
-
     @Override
     public List<Order> getMyOrders() {
 

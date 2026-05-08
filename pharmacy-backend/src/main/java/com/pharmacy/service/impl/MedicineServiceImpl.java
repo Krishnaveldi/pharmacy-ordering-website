@@ -6,6 +6,7 @@ import com.pharmacy.entity.Medicine;
 import com.pharmacy.entity.MedicineCategory;
 import com.pharmacy.repository.MedicineCategoryRepository;
 import com.pharmacy.repository.MedicineRepository;
+import com.pharmacy.service.AuditService; // Import the AuditService
 import com.pharmacy.service.MedicineService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
@@ -18,6 +19,7 @@ public class MedicineServiceImpl implements MedicineService {
 
     private final MedicineRepository medicineRepository;
     private final MedicineCategoryRepository categoryRepository;
+    private final AuditService auditService; // 1. Inject AuditService as shown in image_532299.png
 
     @Override
     public MedicineResponse createMedicine(MedicineRequest request) {
@@ -35,10 +37,21 @@ public class MedicineServiceImpl implements MedicineService {
                 .expiryDate(request.getExpiryDate())
                 .imageUrl(request.getImageUrl())
                 .category(category)
-                .isActive(true) // Ensure it starts as active
+                .isActive(true)
                 .build();
 
-        return mapToResponse(medicineRepository.save(medicine));
+        // 2. Save the medicine first to get an ID for the audit log
+        Medicine savedMedicine = medicineRepository.save(medicine);
+
+        // 3. Log the creation event to the Audit Service as shown in image_532299.png
+        auditService.log(
+                "MEDICINE_CREATED",
+                "Medicine",
+                savedMedicine.getId(),
+                "Medicine created: " + savedMedicine.getName()
+        );
+
+        return mapToResponse(savedMedicine);
     }
 
     @Override
@@ -65,12 +78,21 @@ public class MedicineServiceImpl implements MedicineService {
 
     @Override
     public void deleteMedicine(Long id) {
-        // SOFT DELETE: Instead of medicineRepository.delete(), we toggle isActive
+        // 1. Find the medicine or throw error if it doesn't exist
         Medicine medicine = medicineRepository.findById(id)
                 .orElseThrow(() -> new RuntimeException("Medicine not found"));
 
-        medicine.setIsActive(false); // Make it inactive instead of deleting
+        // 2. Perform Soft Delete
+        medicine.setIsActive(false);
         medicineRepository.save(medicine);
+
+        // 3. Log the deletion event to the Audit Service
+        auditService.log(
+                "MEDICINE_DELETED",
+                "Medicine",
+                medicine.getId(),
+                "Medicine deleted: " + medicine.getName()
+        );
     }
 
     @Override
@@ -82,8 +104,6 @@ public class MedicineServiceImpl implements MedicineService {
 
     @Override
     public Page<MedicineResponse> getAllMedicines(int page, int size) {
-        // You can change this to only find active medicines:
-        // medicineRepository.findByIsActiveTrue(PageRequest.of(page, size))
         return medicineRepository.findAll(PageRequest.of(page, size))
                 .map(this::mapToResponse);
     }
@@ -103,10 +123,6 @@ public class MedicineServiceImpl implements MedicineService {
     }
 
     private MedicineResponse mapToResponse(Medicine medicine) {
-        // Determine stock status for the response
-        String stockStatus = (medicine.getStockQuantity() != null && medicine.getStockQuantity() > 0)
-                ? "IN_STOCK" : "OUT_OF_STOCK";
-
         return MedicineResponse.builder()
                 .id(medicine.getId())
                 .name(medicine.getName())
@@ -119,9 +135,6 @@ public class MedicineServiceImpl implements MedicineService {
                 .expiryDate(medicine.getExpiryDate())
                 .imageUrl(medicine.getImageUrl())
                 .categoryName(medicine.getCategory().getName())
-                // You should add these two fields to your MedicineResponse DTO:
-                // .isActive(medicine.getIsActive())
-                // .status(stockStatus)
                 .build();
     }
 }
